@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-lang="en">
+<head>
+<!-- skill:chrome -->
+<style>
+/* Credit line — bottom-right */
+.design-ui-credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  font: 11px/1 system-ui, sans-serif;
+  color: rgba(128,128,128,0.5);
+  pointer-events: none;
+  z-index: 2147483647;
+  transition: opacity 0.4s ease;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* Hide chrome on touch devices */
+@media (hover: none) {
+  .design-ui-credit { display: none; }
+}
+
+/* Print fixes */
+@media print {
+  * {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .design-ui-credit { display: none !important; }
+}
+
+</style>
+<script>
+(function () {
+    // Design-ui pages are single compositions, so the whole body is editable.
+    function markEditable() {
+        document.body.classList.add('artifact-editable');
+    }
+
+    // Credit badge with idle-fade. Hover devices only.
+    function initChromeUI() {
+        if (!matchMedia('(hover: hover)').matches) return;
+
+        var credit = document.createElement('div');
+        credit.className = 'design-ui-credit';
+        credit.setAttribute('aria-hidden', 'true');
+        credit.innerHTML = '\u{1F49C} by ClickUp Brain';
+        document.body.appendChild(credit);
+
+        var timer = null;
+        var fade = function (out) { credit.style.opacity = out ? '0' : ''; };
+        fade(true);
+        var show = function () {
+            fade(false);
+            clearTimeout(timer);
+            timer = setTimeout(function () { fade(true); }, 3000);
+        };
+        document.addEventListener('mousemove', show);
+        show();
+    }
+
+    function init() {
+        markEditable();
+        initChromeUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chrome -->
+<!-- skill:libraries -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js" integrity="sha384-XcdcwHqIPULERb2yDEM4R0XaQKU3YnDsrTmjACBZyfdVVqjh6xQ4/DCMd7XLcA6Y" crossorigin="anonymous"></script>
+<!-- /skill:libraries -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PsycheLens | Big Five Personality Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root, [data-theme="light"] {
+  --bg-1: oklch(97.5% 0.006 290);
+  --bg-2: oklch(95% 0.01 290);
+  --bg-3: oklch(92% 0.012 290);
+  --surface: oklch(99% 0.004 290 / 0.85);
+  --surface-solid: oklch(99% 0.004 290);
+  --surface-hover: oklch(96% 0.008 290);
+  --text-1: oklch(15% 0.015 290);
+  --text-2: oklch(35% 0.012 290);
+  --text-3: oklch(55% 0.008 290);
+  --primary: oklch(52% 0.18 290);
+  --primary-soft: oklch(92% 0.06 290);
+  --primary-hover: oklch(45% 0.2 290);
+  --accent: oklch(65% 0.2 30);
+  --accent-soft: oklch(92% 0.06 30);
+  --accent-hover: oklch(58% 0.22 30);
+  --success: oklch(55% 0.14 155);
+  --warning: oklch(70% 0.16 80);
+  --border: oklch(90% 0.008 290 / 0.6);
+  --border-hover: oklch(80% 0.015 290);
+  --shadow-sm: 0 1px 3px oklch(15% 0.01 290 / 0.06);
+  --shadow-md: 0 4px 16px oklch(15% 0.01 290 / 0.08);
+  --shadow-lg: 0 12px 40px oklch(15% 0.01 290 / 0.12);
+  --trait-e: oklch(60% 0.18 30);
+  --trait-a: oklch(55% 0.15 155);
+  --trait-c: oklch(52% 0.18 260);
+  --trait-n: oklch(58% 0.16 320);
+  --trait-o: oklch(62% 0.16 80);
+  --orb-1: oklch(85% 0.12 290);
+  --orb-2: oklch(88% 0.1 30);
+  --orb-3: oklch(87% 0.08 155);
+  --orb-4: oklch(86% 0.1 200);
+  --grain-opacity: 0.03;
+}
+
+[data-theme="dark"] {
+  --bg-1: oklch(12% 0.015 290);
+  --bg-2: oklch(16% 0.018 290);
+  --bg-3: oklch(20% 0.018 290);
+  --surface: oklch(18% 0.02 290 / 0.8);
+  --surface-solid: oklch(18% 0.02 290);
+  --surface-hover: oklch(22% 0.02 290);
+  --text-1: oklch(92% 0.006 290);
+  --text-2: oklch(75% 0.008 290);
+  --text-3: oklch(55% 0.008 290);
+  --primary: oklch(72% 0.14 290);
+  --primary-soft: oklch(22% 0.04 290);
+  --primary-hover: oklch(78% 0.12 290);
+  --accent: oklch(72% 0.16 30);
+  --accent-soft: oklch(22% 0.04 30);
+  --accent-hover: oklch(78% 0.14 30);
+  --success: oklch(70% 0.12 155);
+  --warning: oklch(75% 0.14 80);
+  --border: oklch(26% 0.015 290 / 0.6);
+  --border-hover: oklch(35% 0.015 290);
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --trait-e: oklch(72% 0.16 30);
+  --trait-a: oklch(70% 0.12 155);
+  --trait-c: oklch(72% 0.14 260);
+  --trait-n: oklch(72% 0.14 320);
+  --trait-o: oklch(74% 0.14 80);
+  --orb-1: oklch(25% 0.08 290);
+  --orb-2: oklch(22% 0.06 30);
+  --orb-3: oklch(20% 0.05 155);
+  --orb-4: oklch(23% 0.06 200);
+  --grain-opacity: 0.04;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-1);
+  background: var(--bg-1);
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  transition: background 0.4s, color 0.3s;
+  min-height: 100vh;
+}
+
+[data-lang="ta"] body, [data-lang="ta"] * {
+  font-family: 'Noto Sans Tamil', 'Space Grotesk', system-ui, sans-serif;
+}
+
+/* ====== ANIMATED BACKGROUND ====== */
+.bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.6;
+  will-change: transform;
+}
+
+.bg-orb-1 {
+  width: 500px;
+  height: 500px;
+  background: var(--orb-1);
+  top: -10%;
+  right: -5%;
+  animation: orbFloat1 20s ease-in-out infinite;
+}
+
+.bg-orb-2 {
+  width: 400px;
+  height: 400px;
+  background: var(--orb-2);
+  bottom: 10%;
+  left: -8%;
+  animation: orbFloat2 25s ease-in-out infinite;
+}
+
+.bg-orb-3 {
+  width: 350px;
+  height: 350px;
+  background: var(--orb-3);
+  top: 40%;
+  right: 20%;
+  animation: orbFloat3 22s ease-in-out infinite;
+}
+
+.bg-orb-4 {
+  width: 300px;
+  height: 300px;
+  background: var(--orb-4);
+  bottom: -5%;
+  right: 40%;
+  animation: orbFloat4 18s ease-in-out infinite;
+}
+
+@keyframes orbFloat1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-60px, 80px) scale(1.1); }
+  66% { transform: translate(40px, -40px) scale(0.95); }
+}
+
+@keyframes orbFloat2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(70px, -50px) scale(1.05); }
+  66% { transform: translate(-30px, 60px) scale(0.9); }
+}
+
+@keyframes orbFloat3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-80px, -60px) scale(1.15); }
+}
+
+@keyframes orbFloat4 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  40% { transform: translate(50px, -70px) scale(1.08); }
+  70% { transform: translate(-40px, 30px) scale(0.92); }
+}
+
+/* Grain texture overlay */
+.bg-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px;
+}
+
+/* Mesh grid lines */
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0.3;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 20%, transparent 70%);
+}
+
+h1, h2, h3 { text-wrap: balance; line-height: 1.15; }
+p { text-wrap: pretty; max-width: 65ch; }
+
+/* ====== TOP BAR ====== */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: oklch(from var(--bg-1) l c h / 0.7);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar-brand {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: -0.02em;
+}
+
+.topbar-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.toggle-btn {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(8px);
+}
+
+.toggle-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+/* ====== SCREENS ====== */
+.screen {
+  display: none;
+  min-height: 100vh;
+  padding: 80px 24px 60px;
+  position: relative;
+  z-index: 2;
+}
+
+.screen.active { display: block; }
+
+.screen-inner {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* ====== HOME / HERO ====== */
+.hero {
+  padding-top: 10vh;
+  text-align: center;
+}
+
+.hero-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-radius: 20px;
+  margin-bottom: 24px;
+  backdrop-filter: blur(4px);
+}
+
+.hero h1 {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
+  color: var(--text-1);
+}
+
+.hero-sub {
+  font-size: 1.1rem;
+  color: var(--text-2);
+  margin: 0 auto 48px;
+  max-width: 500px;
+}
+
+/* ====== 3D SHOWCASE ====== */
+.showcase-3d {
+  perspective: 1200px;
+  margin: 0 auto 56px;
+  max-width: 540px;
+}
+
+.showcase-card {
+  position: relative;
+  background: var(--surface);
+  backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px;
+  transform: rotateY(var(--ry, 0deg)) rotateX(var(--rx, 0deg));
+  transition: transform 0.08s linear;
+  transform-style: preserve-3d;
+  box-shadow: var(--shadow-lg);
+}
+
+.showcase-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.demo-loop {
+  display: flex;
+  gap: 16px;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.demo-item {
+  flex-shrink: 0;
+  width: 140px;
+  height: 90px;
+  background: var(--bg-2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-3);
+  border: 1px solid var(--border);
+  animation: scrollDemo 12s linear infinite;
+}
+
+@keyframes scrollDemo {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(-156px * 5)); }
+}
+
+.demo-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  text-align: center;
+}
+
+.demo-stat {
+  padding: 12px 8px;
+  background: var(--bg-2);
+  border-radius: 10px;
+}
+
+.demo-stat-val {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.demo-stat-label {
+  font-size: 0.65rem;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+/* ====== FEATURES SCROLL ====== */
+.features-scroll {
+  padding: 0 24px 80px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.feature-row {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  padding: 48px 0;
+  opacity: 0;
+  transform: translateY(40px) rotateX(4deg);
+  transition: opacity 0.6s cubic-bezier(0.22,1,0.36,1), transform 0.6s cubic-bezier(0.22,1,0.36,1);
+}
+
+.feature-row.visible {
+  opacity: 1;
+  transform: translateY(0) rotateX(0);
+}
+
+.feature-row:nth-child(even) { flex-direction: row-reverse; }
+
+.feature-icon {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.25rem;
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.feature-content h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.feature-content p {
+  font-size: 0.9rem;
+  color: var(--text-2);
+  line-height: 1.5;
+}
+
+/* ====== BUTTONS ====== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.22,1,0.36,1), background 0.15s, box-shadow 0.15s;
+  font-family: inherit;
+}
+
+.btn:active { transform: scale(0.97); }
+
+.btn-primary {
+  background: var(--accent);
+  color: oklch(99% 0.005 30);
+  box-shadow: 0 4px 20px oklch(from var(--accent) l c h / 0.35);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px oklch(from var(--accent) l c h / 0.4);
+}
+
+.btn-ghost {
+  background: var(--surface);
+  color: var(--text-1);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+}
+
+.btn-ghost:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-hover);
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  border-radius: 8px;
+}
+
+/* ====== LANGUAGE SELECT ====== */
+.lang-select-screen {
+  text-align: center;
+  padding-top: 15vh;
+}
+
+.lang-select-screen h2 {
+  font-size: 1.75rem;
+  margin-bottom: 8px;
+}
+
+.lang-select-screen p {
+  color: var(--text-2);
+  margin: 0 auto 40px;
+}
+
+.lang-cards {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.lang-card {
+  width: 200px;
+  padding: 32px 24px;
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.22,1,0.36,1);
+  text-align: center;
+}
+
+.lang-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: var(--shadow-md);
+}
+
+.lang-card .lang-script {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--primary);
+}
+
+.lang-card .lang-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.lang-card .lang-native {
+  font-size: 0.8rem;
+  color: var(--text-3);
+  margin-top: 4px;
+}
+
+/* ====== PROGRESS ====== */
+.progress-strip {
+  position: sticky;
+  top: 52px;
+  z-index: 50;
+  background: oklch(from var(--bg-1) l c h / 0.8);
+  backdrop-filter: blur(12px);
+  padding: 12px 0 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+
+.progress-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.progress-top span {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.progress-bar {
+  height: 5px;
+  background: var(--bg-3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  border-radius: 3px;
+  transition: width 0.4s cubic-bezier(0.22,1,0.36,1);
+}
+
+/* ====== QUESTIONS ====== */
+.q-page { display: none; }
+.q-page.active { display: block; }
+
+.q-group-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 20px;
+}
+
+.q-card {
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.q-card:hover { transform: translateY(-1px); }
+.q-card.done { border-color: var(--success); }
+.q-card.warn {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px oklch(from var(--accent) l c h / 0.12);
+}
+
+.q-num {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-3);
+  margin-bottom: 4px;
+}
+
+.q-text {
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.likert {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.likert-item { flex: 1; min-width: 0; }
+.likert-item input { position: absolute; opacity: 0; pointer-events: none; }
+
+.likert-item label {
+  display: block;
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--text-2);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.12s;
+  user-select: none;
+}
+
+.likert-item input:checked + label {
+  background: var(--primary);
+  color: oklch(98% 0.005 290);
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px oklch(from var(--primary) l c h / 0.3);
+}
+
+.likert-item label:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+/* ====== NAV ====== */
+.q-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.q-nav .page-num {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ====== RESULTS ====== */
+.results-hero {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.results-hero h1 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  margin-bottom: 8px;
+}
+
+.results-hero p { color: var(--text-2); margin: 0 auto; }
+
+.dominant-box {
+  text-align: center;
+  padding: 28px;
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 32px;
+  box-shadow: var(--shadow-md);
+}
+
+.dominant-box .d-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-3);
+  margin-bottom: 4px;
+}
+
+.dominant-box .d-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.dominant-box .d-score {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dominant-box .d-score small {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--text-3);
+}
+
+.chart-wrap {
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+.chart-wrap canvas { max-height: 320px; }
+
+.trait-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+
+.t-row {
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  transition: transform 0.2s cubic-bezier(0.22,1,0.36,1);
+}
+
+.t-row:hover { transform: translateX(4px); }
+
+.t-row-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.t-row-head .t-name { font-weight: 600; font-size: 0.9rem; }
+.t-row-head .t-score { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.t-bar { height: 6px; background: var(--bg-3); border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+.t-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s cubic-bezier(0.22,1,0.36,1); }
+
+.t-desc { font-size: 0.78rem; color: var(--text-2); line-height: 1.5; }
+
+.disclaimer-box {
+  padding: 16px;
+  background: var(--accent-soft);
+  border-radius: 12px;
+  font-size: 0.78rem;
+  color: var(--text-2);
+  line-height: 1.5;
+  margin-top: 32px;
+}
+
+.disclaimer-box strong { color: var(--text-1); }
+
+.results-btns {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 640px) {
+  .screen { padding: 70px 16px 48px; }
+  .topbar { padding: 10px 16px; }
+  .feature-row, .feature-row:nth-child(even) { flex-direction: column; gap: 16px; text-align: center; }
+  .likert { gap: 4px; }
+  .likert-item label { padding: 6px 2px; font-size: 0.6rem; }
+  .demo-stats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .lang-cards { flex-direction: column; align-items: center; }
+  .results-btns { flex-direction: column; }
+  .bg-orb { filter: blur(60px); opacity: 0.4; }
+  .bg-orb-1 { width: 300px; height: 300px; }
+  .bg-orb-2 { width: 250px; height: 250px; }
+  .bg-orb-3 { width: 200px; height: 200px; }
+  .bg-orb-4 { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ANIMATED BACKGROUND -->
+<div class="bg-canvas">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+  <div class="bg-orb bg-orb-4"></div>
+</div>
+<div class="bg-grain"></div>
+<div class="bg-grid"></div>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="topbar-brand">⬡ PsycheLens</div>
+  <div class="topbar-controls">
+    <button class="toggle-btn" id="theme-toggle" onclick="toggleTheme()">🌙</button>
+    <button class="toggle-btn" id="lang-toggle" onclick="toggleLang()">தமிழ்</button>
+  </div>
+</header>
+
+<!-- HOME -->
+<section class="screen active" id="scr-home">
+  <div class="screen-inner hero">
+    <div class="hero-badge" data-t="hero-badge">Big Five Personality Science</div>
+    <h1 data-t="hero-title">Discover Your<br>True Self</h1>
+    <p class="hero-sub" data-t="hero-sub">50 scientifically validated questions. Accurate scoring. Instant visual report with detailed trait analysis.</p>
+    
+    <div class="showcase-3d" id="showcase3d">
+      <div class="showcase-card" id="showcaseCard">
+        <div class="showcase-inner">
+          <div class="demo-loop" id="demoLoop">
+            <div class="demo-item">Extraversion</div>
+            <div class="demo-item">Agreeableness</div>
+            <div class="demo-item">Conscientiousness</div>
+            <div class="demo-item">Neuroticism</div>
+            <div class="demo-item">Openness</div>
+            <div class="demo-item">Extraversion</div>
+            <div class="demo-item">Agreeableness</div>
+            <div class="demo-item">Conscientiousness</div>
+            <div class="demo-item">Neuroticism</div>
+            <div class="demo-item">Openness</div>
+          </div>
+          <div class="demo-stats">
+            <div class="demo-stat"><div class="demo-stat-val">50</div><div class="demo-stat-label" data-t="d-items">Items</div></div>
+            <div class="demo-stat"><div class="demo-stat-val">5</div><div class="demo-stat-label" data-t="d-traits">Traits</div></div>
+            <div class="demo-stat"><div class="demo-stat-val">PDF</div><div class="demo-stat-label" data-t="d-report">Report</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <button class="btn btn-primary" onclick="goTo('scr-lang')" data-t="cta-start">Start Assessment →</button>
+  </div>
+  
+  <div class="features-scroll">
+    <div class="feature-row">
+      <div class="feature-icon">🧠</div>
+      <div class="feature-content">
+        <h3 data-t="f1-title">IPIP Validated Items</h3>
+        <p data-t="f1-desc">All 50 questions from the International Personality Item Pool, reworded for clarity with zero ambiguity.</p>
+      </div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-icon">🌐</div>
+      <div class="feature-content">
+        <h3 data-t="f2-title">Tamil &amp; English</h3>
+        <p data-t="f2-desc">Take the full assessment in your preferred language. Results and PDF export adapt completely.</p>
+      </div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-icon">📊</div>
+      <div class="feature-content">
+        <h3 data-t="f3-title">Radar Chart Visualization</h3>
+        <p data-t="f3-desc">Your five dimensions plotted against population averages. Instantly see where you stand.</p>
+      </div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-icon">📄</div>
+      <div class="feature-content">
+        <h3 data-t="f4-title">Downloadable PDF Report</h3>
+        <p data-t="f4-desc">Full personality report with scores, interpretation, and all your responses. Works in Tamil too.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LANGUAGE SELECT -->
+<section class="screen" id="scr-lang">
+  <div class="screen-inner lang-select-screen">
+    <h2 data-t="lang-title">Choose Your Language</h2>
+    <p data-t="lang-sub">The entire assessment, results, and PDF will appear in your selected language.</p>
+    <div class="lang-cards">
+      <div class="lang-card" onclick="selectLang('en')">
+        <div class="lang-script">En</div>
+        <div class="lang-name">English</div>
+        <div class="lang-native">English</div>
+      </div>
+      <div class="lang-card" onclick="selectLang('ta')">
+        <div class="lang-script">த</div>
+        <div class="lang-name">Tamil</div>
+        <div class="lang-native">தமிழ்</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUESTIONS -->
+<section class="screen" id="scr-quiz">
+  <div class="screen-inner">
+    <div class="progress-strip">
+      <div class="progress-top">
+        <span data-t="progress-label">Progress</span>
+        <span id="prog-count">0 / 50</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+    </div>
+    <div id="q-container"></div>
+    <div class="q-nav">
+      <button class="btn btn-ghost btn-sm" id="btn-back" onclick="qPrev()" style="visibility:hidden" data-t="btn-back">← Back</button>
+      <span class="page-num" id="page-num"></span>
+      <button class="btn btn-primary btn-sm" id="btn-next" onclick="qNext()" data-t="btn-next">Next →</button>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section class="screen" id="scr-results">
+  <div class="screen-inner">
+    <div class="results-hero">
+      <h1 data-t="res-title">Your Personality Profile</h1>
+      <p data-t="res-sub">Based on the IPIP Big Five model across five fundamental dimensions.</p>
+    </div>
+    <div class="dominant-box" id="dom-box"></div>
+    <div class="chart-wrap"><canvas id="radar-chart"></canvas></div>
+    <h2 style="font-size:1.25rem; margin-bottom:16px;" data-t="breakdown-title">Trait Breakdown</h2>
+    <div class="trait-list" id="trait-list"></div>
+    <div class="disclaimer-box">
+      <strong data-t="disc-title">Educational Disclaimer:</strong>
+      <span data-t="disc-text"> This assessment uses the IPIP 50-item scale for educational and self-reflection purposes only. It is not a clinical diagnostic tool.</span>
+    </div>
+    <div class="results-btns">
+      <button class="btn btn-primary" onclick="downloadPDF()" data-t="btn-pdf">📄 Download PDF Report</button>
+      <button class="btn btn-ghost" onclick="retake()" data-t="btn-retake">↺ Retake</button>
+    </div>
+  </div>
+</section>
+
+<script>
+// ========== TRANSLATIONS ==========
+const T = {
+  en: {
+    "hero-badge":"Big Five Personality Science","hero-title":"Discover Your<br>True Self","hero-sub":"50 scientifically validated questions. Accurate scoring. Instant visual report with detailed trait analysis.","cta-start":"Start Assessment →","f1-title":"IPIP Validated Items","f1-desc":"All 50 questions from the International Personality Item Pool, reworded for clarity with zero ambiguity.","f2-title":"Tamil & English","f2-desc":"Take the full assessment in your preferred language. Results and PDF export adapt completely.","f3-title":"Radar Chart Visualization","f3-desc":"Your five dimensions plotted against population averages. Instantly see where you stand.","f4-title":"Downloadable PDF Report","f4-desc":"Full personality report with scores, interpretation, and all your responses. Works in Tamil too.","lang-title":"Choose Your Language","lang-sub":"The entire assessment, results, and PDF will appear in your selected language.","progress-label":"Progress","btn-back":"← Back","btn-next":"Next →","btn-submit":"View Results →","res-title":"Your Personality Profile","res-sub":"Based on the IPIP Big Five model across five fundamental dimensions.","breakdown-title":"Trait Breakdown","disc-title":"Educational Disclaimer:","disc-text":" This assessment uses the IPIP 50-item scale for educational and self-reflection purposes only. It is not a clinical diagnostic tool.","btn-pdf":"📄 Download PDF Report","btn-retake":"↺ Retake","d-items":"Items","d-traits":"Traits","d-report":"Report","dom-label":"Your Strongest Dimension",
+    "likert":["Disagree","Slightly Disagree","Neutral","Slightly Agree","Agree"],
+    "traits":{E:"Extraversion",A:"Agreeableness",C:"Conscientiousness",N:"Neuroticism",O:"Openness"},
+    "traitDesc":{E:{high:"You thrive on social energy, enjoy meeting people, and feel energized in group settings.",low:"You prefer quieter environments, recharge through solitude, and enjoy deep one-on-one conversations."},A:{high:"You're compassionate, cooperative, and naturally inclined to help others.",low:"You're direct, competitive, and prioritize logic over social harmony."},C:{high:"You're organized, disciplined, and follow through on commitments reliably.",low:"You're flexible, spontaneous, and prefer to keep your options open."},N:{high:"You experience emotions intensely and are highly attuned to stress and potential threats.",low:"You're emotionally steady, resilient under pressure, and maintain a calm temperament."},O:{high:"You're intellectually curious, creative, and drawn to new ideas and experiences.",low:"You prefer the practical and familiar, valuing concrete results over abstract exploration."}}
+  },
+  ta: {
+    "hero-badge":"பிக் ஃபைவ் ஆளுமை அறிவியல்","hero-title":"உங்கள் உண்மையான<br>சுயத்தைக் கண்டறியுங்கள்","hero-sub":"50 அறிவியல் பூர்வமாக சரிபார்க்கப்பட்ட கேள்விகள். துல்லியமான மதிப்பீடு. உடனடி காட்சி அறிக்கை.","cta-start":"மதிப்பீட்டைத் தொடங்கு →","f1-title":"IPIP சரிபார்க்கப்பட்ட உருப்படிகள்","f1-desc":"சர்வதேச ஆளுமை உருப்படிக் குளத்திலிருந்து அனைத்து 50 கேள்விகளும், தெளிவாக மீண்டும் எழுதப்பட்டவை.","f2-title":"தமிழ் & ஆங்கிலம்","f2-desc":"உங்கள் விருப்பமான மொழியில் முழு மதிப்பீட்டை எடுக்கவும். முடிவுகளும் PDF ஏற்றுமதியும் முழுமையாக மாறும்.","f3-title":"ரேடார் விளக்கப்படம்","f3-desc":"மக்கள்தொகை சராசரிக்கு எதிராக உங்கள் ஐந்து பரிமாணங்கள் வரையப்பட்டுள்ளன.","f4-title":"பதிவிறக்கக்கூடிய PDF அறிக்கை","f4-desc":"மதிப்பெண்கள், விளக்கம் மற்றும் உங்கள் அனைத்து பதில்களையும் கொண்ட முழு அறிக்கை. தமிழிலும் செயல்படும்.","lang-title":"உங்கள் மொழியைத் தேர்ந்தெடுக்கவும்","lang-sub":"முழு மதிப்பீடு, முடிவுகள் மற்றும் PDF உங்கள் தேர்ந்தெடுக்கப்பட்ட மொழியில் தோன்றும்.","progress-label":"முன்னேற்றம்","btn-back":"← பின்","btn-next":"அடுத்து →","btn-submit":"முடிவுகளைக் காண →","res-title":"உங்கள் ஆளுமை சுயவிவரம்","res-sub":"IPIP பிக் ஃபைவ் மாதிரியின் ஐந்து அடிப்படை பரிமாணங்களின் அடிப்படையில்.","breakdown-title":"பண்பு பிரிப்பு","disc-title":"கல்வி மறுப்பு:","disc-text":" இந்த மதிப்பீடு IPIP 50-உருப்படி அளவைப் பயன்படுத்துகிறது, கல்வி மற்றும் சுய சிந்தனை நோக்கங்களுக்காக மட்டுமே. இது மருத்துவ கண்டறிதல் கருவி அல்ல.","btn-pdf":"📄 PDF அறிக்கையைப் பதிவிறக்கு","btn-retake":"↺ மீண்டும் எடு","d-items":"உருப்படிகள்","d-traits":"பண்புகள்","d-report":"அறிக்கை","dom-label":"உங்கள் வலிமையான பரிமாணம்",
+    "likert":["மறுக்கிறேன்","சிறிது மறுக்கிறேன்","நடுநிலை","சிறிது ஒப்புக்கொள்கிறேன்","ஒப்புக்கொள்கிறேன்"],
+    "traits":{E:"புறமுகநோக்கு",A:"இணக்கத்தன்மை",C:"கடமையுணர்வு",N:"நரம்புத்தளர்ச்சி",O:"அனுபவத்திறப்பு"},
+    "traitDesc":{E:{high:"நீங்கள் சமூக ஆற்றலில் செழிக்கிறீர்கள், மக்களைச் சந்திப்பதை ரசிக்கிறீர்கள்.",low:"நீங்கள் அமைதியான சூழல்களை விரும்புகிறீர்கள், தனிமையில் ஓய்வெடுக்கிறீர்கள்."},A:{high:"நீங்கள் இரக்கமுள்ளவர், ஒத்துழைப்பவர், மற்றவர்களுக்கு உதவ இயல்பாக விரும்புபவர்.",low:"நீங்கள் நேரடியானவர், போட்டியிடுபவர், சமூக நல்லிணக்கத்தை விட தர்க்கத்திற்கு முன்னுரிமை அளிப்பவர்."},C:{high:"நீங்கள் ஒழுங்கமைக்கப்பட்டவர், ஒழுக்கமானவர், உறுதிமொழிகளை நம்பகத்தன்மையுடன் நிறைவேற்றுபவர்.",low:"நீங்கள் நெகிழ்வானவர், தன்னிச்சையானவர், விருப்பங்களைத் திறந்து வைக்க விரும்புபவர்."},N:{high:"நீங்கள் உணர்ச்சிகளை தீவிரமாக அனுபவிக்கிறீர்கள், மன அழுத்தத்திற்கு அதிக கவனம் செலுத்துகிறீர்கள்.",low:"நீங்கள் உணர்ச்சி ரீதியாக நிலையானவர், அழுத்தத்தின் கீழ் நெகிழ்ச்சியானவர்."},O:{high:"நீங்கள் அறிவுப் பூர்வமாக ஆர்வமுள்ளவர், படைப்பாற்றல் மிக்கவர், புதிய யோசனைகளில் ஈர்க்கப்படுபவர்.",low:"நீங்கள் நடைமுறை மற்றும் பழக்கமானவற்றை விரும்புகிறீர்கள்."}}
+  }
+};
+
+// ========== QUESTIONS ==========
+const Q_DATA = [
+  {id:1,en:"I enjoy being the center of attention at social gatherings.",ta:"சமூக கூட்டங்களில் கவனத்தின் மையமாக இருப்பதை நான் ரசிக்கிறேன்.",trait:"E",rev:false},
+  {id:6,en:"I tend to stay quiet and let others do most of the talking.",ta:"நான் அமைதியாக இருக்க விரும்புகிறேன், மற்றவர்கள் அதிகம் பேச விடுகிறேன்.",trait:"E",rev:true},
+  {id:11,en:"I feel at ease and comfortable around most people.",ta:"பெரும்பாலான மக்களிடையே நான் நிம்மதியாகவும் வசதியாகவும் உணர்கிறேன்.",trait:"E",rev:false},
+  {id:16,en:"I prefer to stay in the background rather than stand out.",ta:"தனித்து நிற்பதை விட பின்னணியில் இருக்க நான் விரும்புகிறேன்.",trait:"E",rev:true},
+  {id:21,en:"I'm usually the one who starts conversations with new people.",ta:"புதியவர்களிடம் உரையாடலைத் தொடங்குபவன் பொதுவாக நான்தான்.",trait:"E",rev:false},
+  {id:26,en:"I rarely have much to contribute to group conversations.",ta:"குழு உரையாடல்களில் பங்களிக்க எனக்கு அரிதாகவே அதிகம் உள்ளது.",trait:"E",rev:true},
+  {id:31,en:"At social events, I enjoy meeting and talking with many different people.",ta:"சமூக நிகழ்வுகளில், பல்வேறு நபர்களை சந்தித்து பேசுவதை நான் ரசிக்கிறேன்.",trait:"E",rev:false},
+  {id:36,en:"I actively avoid drawing attention to myself.",ta:"என் மீது கவனத்தை ஈர்ப்பதை நான் தீவிரமாகத் தவிர்க்கிறேன்.",trait:"E",rev:true},
+  {id:41,en:"I'm perfectly comfortable being the center of attention.",ta:"கவனத்தின் மையமாக இருப்பது எனக்கு மிகவும் வசதியானது.",trait:"E",rev:false},
+  {id:46,en:"I become reserved and withdrawn around people I don't know well.",ta:"நான் நன்கு அறியாத நபர்களிடம் ஒதுங்கியும் உள்முகமாகவும் ஆகிறேன்.",trait:"E",rev:true},
+  {id:2,en:"I show little concern for other people's feelings or needs.",ta:"மற்றவர்களின் உணர்வுகள் அல்லது தேவைகளைப் பற்றி நான் குறைவாகவே அக்கறை காட்டுகிறேன்.",trait:"A",rev:true},
+  {id:7,en:"I'm genuinely curious about other people and their lives.",ta:"மற்றவர்களையும் அவர்களின் வாழ்க்கையையும் பற்றி நான் உண்மையாக ஆர்வமாக இருக்கிறேன்.",trait:"A",rev:false},
+  {id:12,en:"I sometimes say hurtful things to others without thinking.",ta:"சில நேரங்களில் யோசிக்காமல் மற்றவர்களிடம் புண்படுத்தும் வார்த்தைகள் சொல்வேன்.",trait:"A",rev:true},
+  {id:17,en:"I can easily understand and share in others' emotional experiences.",ta:"மற்றவர்களின் உணர்ச்சி அனுபவங்களை எளிதாகப் புரிந்துகொண்டு பகிர்ந்துகொள்ள முடியும்.",trait:"A",rev:false},
+  {id:22,en:"I'm not particularly interested in listening to other people's problems.",ta:"மற்றவர்களின் பிரச்சினைகளைக் கேட்பதில் எனக்கு குறிப்பாக ஆர்வம் இல்லை.",trait:"A",rev:true},
+  {id:27,en:"I tend to be compassionate and soft-hearted toward others.",ta:"நான் மற்றவர்களிடம் இரக்கமுள்ளவனாகவும் மென்மையான இதயம் கொண்டவனாகவும் இருக்கிறேன்.",trait:"A",rev:false},
+  {id:32,en:"I don't go out of my way to show interest in other people.",ta:"மற்றவர்களிடம் ஆர்வம் காட்ட நான் கூடுதல் முயற்சி எடுப்பதில்லை.",trait:"A",rev:true},
+  {id:37,en:"I willingly give my time to help others, even when it's inconvenient.",ta:"சிரமமாக இருந்தாலும், மற்றவர்களுக்கு உதவ நான் மனமுவந்து நேரம் ஒதுக்குகிறேன்.",trait:"A",rev:false},
+  {id:42,en:"I can sense and feel what others are going through emotionally.",ta:"மற்றவர்கள் உணர்ச்சி ரீதியாக என்ன அனுபவிக்கிறார்கள் என்பதை என்னால் உணர முடியும்.",trait:"A",rev:false},
+  {id:47,en:"I have a natural ability to make people feel relaxed and welcome.",ta:"மக்களை நிம்மதியாகவும் வரவேற்கப்பட்டதாகவும் உணர வைக்கும் இயல்பான திறன் எனக்கு உண்டு.",trait:"A",rev:false},
+  {id:3,en:"I always make sure I'm well-prepared before taking on a task.",ta:"ஒரு பணியை மேற்கொள்வதற்கு முன் நான் எப்போதும் நன்கு தயாராக இருப்பேன்.",trait:"C",rev:false},
+  {id:8,en:"I often leave my things scattered around rather than putting them away.",ta:"பொருட்களை ஒழுங்காக வைப்பதை விட சிதறிய நிலையில் விடுவது எனக்குப் பழக்கம்.",trait:"C",rev:true},
+  {id:13,en:"I pay close attention to details and rarely overlook small things.",ta:"நான் விவரங்களில் கவனம் செலுத்துகிறேன், சிறிய விஷயங்களை அரிதாகவே கவனிக்காமல் விடுவேன்.",trait:"C",rev:false},
+  {id:18,en:"I tend to create disorder and leave tasks half-finished.",ta:"நான் ஒழுங்கின்மையை உருவாக்கவும், பணிகளை பாதியில் விடவும் செய்வேன்.",trait:"C",rev:true},
+  {id:23,en:"I complete my tasks and responsibilities promptly without delay.",ta:"என் பணிகளையும் பொறுப்புகளையும் தாமதமின்றி உடனடியாக முடிக்கிறேன்.",trait:"C",rev:false},
+  {id:28,en:"I frequently forget to return things to their proper place.",ta:"பொருட்களை அவற்றின் சரியான இடத்தில் திரும்ப வைக்க நான் அடிக்கடி மறந்துவிடுகிறேன்.",trait:"C",rev:true},
+  {id:33,en:"I prefer having structure and an organized environment.",ta:"கட்டமைப்பு மற்றும் ஒழுங்கமைக்கப்பட்ட சூழலை நான் விரும்புகிறேன்.",trait:"C",rev:false},
+  {id:38,en:"I tend to avoid or neglect my duties and obligations.",ta:"என் கடமைகளையும் கடப்பாடுகளையும் தவிர்க்கவோ புறக்கணிக்கவோ நான் செய்வேன்.",trait:"C",rev:true},
+  {id:43,en:"I follow a regular schedule and stick to my planned routines.",ta:"நான் வழக்கமான அட்டவணையைப் பின்பற்றுகிறேன், திட்டமிட்ட வழக்கங்களில் நிற்கிறேன்.",trait:"C",rev:false},
+  {id:48,en:"I am thorough and precise in everything I do.",ta:"நான் செய்யும் எல்லாவற்றிலும் முழுமையாகவும் துல்லியமாகவும் இருக்கிறேன்.",trait:"C",rev:false},
+  {id:4,en:"I become stressed and anxious easily, even over minor issues.",ta:"சிறிய விஷயங்களுக்கும் எளிதாக மன அழுத்தமும் கவலையும் அடைகிறேன்.",trait:"N",rev:false},
+  {id:9,en:"I feel calm and emotionally stable most of the time.",ta:"பெரும்பாலான நேரங்களில் நான் அமைதியாகவும் உணர்ச்சி ரீதியாக நிலையாகவும் உணர்கிறேன்.",trait:"N",rev:true},
+  {id:14,en:"I spend a lot of time worrying about things that might go wrong.",ta:"தவறு நடக்கக்கூடிய விஷயங்களைப் பற்றி கவலைப்படுவதில் நிறைய நேரம் செலவிடுகிறேன்.",trait:"N",rev:false},
+  {id:19,en:"I rarely feel sad or emotionally low.",ta:"நான் அரிதாகவே சோகமாகவோ உணர்ச்சி ரீதியாக தாழ்வாகவோ உணர்கிறேன்.",trait:"N",rev:true},
+  {id:24,en:"I get emotionally unsettled and disturbed easily.",ta:"நான் எளிதாக உணர்ச்சி ரீதியாக கலங்கியும் தொந்தரவாகவும் ஆகிறேன்.",trait:"N",rev:false},
+  {id:29,en:"I get upset and frustrated quickly over small problems.",ta:"சிறிய பிரச்சினைகளுக்கு விரைவாக வருத்தமும் விரக்தியும் அடைகிறேன்.",trait:"N",rev:false},
+  {id:34,en:"My mood shifts frequently throughout the day.",ta:"நாள் முழுவதும் என் மனநிலை அடிக்கடி மாறுகிறது.",trait:"N",rev:false},
+  {id:39,en:"I experience frequent and intense mood swings.",ta:"நான் அடிக்கடி தீவிரமான மனநிலை மாற்றங்களை அனுபவிக்கிறேன்.",trait:"N",rev:false},
+  {id:44,en:"I become irritated easily by minor inconveniences.",ta:"சிறிய இடையூறுகளால் நான் எளிதாக எரிச்சலடைகிறேன்.",trait:"N",rev:false},
+  {id:49,en:"I often feel sad, down, or emotionally heavy.",ta:"நான் அடிக்கடி சோகமாகவும், மனம் தளர்ந்தும், உணர்ச்சி ரீதியாக கனமாகவும் உணர்கிறேன்.",trait:"N",rev:false},
+  {id:5,en:"I have a broad and expressive vocabulary.",ta:"நான் பரந்த மற்றும் வெளிப்படையான சொல்வளம் கொண்டவன்.",trait:"O",rev:false},
+  {id:10,en:"I find it hard to grasp abstract or theoretical concepts.",ta:"கருத்தியல் அல்லது கோட்பாட்டு கருத்துக்களைப் புரிந்துகொள்வது எனக்கு கடினமாக உள்ளது.",trait:"O",rev:true},
+  {id:15,en:"I have a vivid and active imagination.",ta:"எனக்கு தெளிவான மற்றும் செயலூக்கமான கற்பனை திறன் உள்ளது.",trait:"O",rev:false},
+  {id:20,en:"I'm not particularly drawn to abstract or philosophical ideas.",ta:"கருத்தியல் அல்லது தத்துவ யோசனைகளில் நான் குறிப்பாக ஈர்க்கப்படுவதில்லை.",trait:"O",rev:true},
+  {id:25,en:"I frequently come up with creative and original ideas.",ta:"நான் அடிக்கடி படைப்பாற்றல் மிக்க மற்றும் அசல் யோசனைகளை உருவாக்குகிறேன்.",trait:"O",rev:false},
+  {id:30,en:"I don't consider myself particularly imaginative or creative.",ta:"நான் என்னை குறிப்பாக கற்பனையானவன் அல்லது படைப்பாற்றல் மிக்கவன் என்று கருதுவதில்லை.",trait:"O",rev:true},
+  {id:35,en:"I pick up on new concepts and ideas quickly.",ta:"புதிய கருத்துக்கள் மற்றும் யோசனைகளை நான் விரைவாகப் புரிந்துகொள்கிறேன்.",trait:"O",rev:false},
+  {id:40,en:"I enjoy using sophisticated and precise language.",ta:"நுட்பமான மற்றும் துல்லியமான மொழியைப் பயன்படுத்துவதை நான் ரசிக்கிறேன்.",trait:"O",rev:false},
+  {id:45,en:"I regularly spend time reflecting deeply on ideas and experiences.",ta:"யோசனைகள் மற்றும் அனுபவங்களைப் பற்றி ஆழமாக சிந்திக்க நான் தொடர்ந்து நேரம் செலவிடுகிறேன்.",trait:"O",rev:false},
+  {id:50,en:"I'm constantly generating new ideas and possibilities.",ta:"நான் தொடர்ந்து புதிய யோசனைகளையும் சாத்தியங்களையும் உருவாக்கிக்கொண்டிருக்கிறேன்.",trait:"O",rev:false}
+];
+
+// ========== STATE ==========
+let lang='en', theme='light', responses={}, curPage=0;
+const PER_PAGE=10, PAGES=Math.ceil(Q_DATA.length/PER_PAGE);
+
+// ========== THEME ==========
+function toggleTheme(){
+  theme=theme==='light'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',theme);
+  document.getElementById('theme-toggle').textContent=theme==='light'?'🌙':'☀️';
+}
+
+// ========== LANGUAGE ==========
+function toggleLang(){lang=lang==='en'?'ta':'en';applyLang();}
+function selectLang(l){lang=l;applyLang();goTo('scr-quiz');renderQuiz();showQPage(0);}
+function applyLang(){
+  document.documentElement.setAttribute('data-lang',lang);
+  document.getElementById('lang-toggle').textContent=lang==='en'?'தமிழ்':'English';
+  document.querySelectorAll('[data-t]').forEach(el=>{const k=el.getAttribute('data-t');if(T[lang][k])el.innerHTML=T[lang][k];});
+}
+
+// ========== NAV ==========
+function goTo(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+
+// ========== 3D ==========
+const showcase=document.getElementById('showcase3d'),card3d=document.getElementById('showcaseCard');
+showcase.addEventListener('mousemove',e=>{const r=showcase.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-0.5,y=(e.clientY-r.top)/r.height-0.5;card3d.style.setProperty('--ry',(x*14)+'deg');card3d.style.setProperty('--rx',(-y*10)+'deg');});
+showcase.addEventListener('mouseleave',()=>{card3d.style.setProperty('--ry','0deg');card3d.style.setProperty('--rx','0deg');});
+
+// Touch 3D
+let lastTouch={x:0,y:0};
+showcase.addEventListener('touchmove',e=>{const t=e.touches[0],r=showcase.getBoundingClientRect(),x=(t.clientX-r.left)/r.width-0.5,y=(t.clientY-r.top)/r.height-0.5;card3d.style.setProperty('--ry',(x*14)+'deg');card3d.style.setProperty('--rx',(-y*10)+'deg');},{passive:true});
+showcase.addEventListener('touchend',()=>{card3d.style.setProperty('--ry','0deg');card3d.style.setProperty('--rx','0deg');});
+
+// ========== SCROLL ANIM ==========
+const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.15});
+document.querySelectorAll('.feature-row').forEach(r=>obs.observe(r));
+
+// ========== QUIZ ==========
+function renderQuiz(){
+  const c=document.getElementById('q-container');c.innerHTML='';const lk=T[lang].likert;
+  for(let p=0;p<PAGES;p++){
+    const d=document.createElement('div');d.className='q-page'+(p===0?' active':'');d.id=`qp-${p}`;
+    const s=p*PER_PAGE,end=Math.min(s+PER_PAGE,Q_DATA.length);
+    const t=document.createElement('div');t.className='q-group-title';t.textContent=lang==='en'?`Questions ${s+1} – ${end}`:`கேள்விகள் ${s+1} – ${end}`;d.appendChild(t);
+    for(let i=s;i<end;i++){const q=Q_DATA[i];const card=document.createElement('div');card.className='q-card'+(responses[q.id]?' done':'');card.id=`qc-${q.id}`;
+      card.innerHTML=`<div class="q-num">${lang==='en'?'Question':'கேள்வி'} ${i+1} / 50</div><div class="q-text">${q[lang]}</div><div class="likert">${[1,2,3,4,5].map(v=>`<div class="likert-item"><input type="radio" name="q${q.id}" id="q${q.id}_${v}" value="${v}" ${responses[q.id]===v?'checked':''} onchange="answer(${q.id},${v})"><label for="q${q.id}_${v}">${lk[v-1]}</label></div>`).join('')}</div>`;
+      d.appendChild(card);}c.appendChild(d);}
+}
+
+function answer(id,val){responses[id]=val;const c=document.getElementById(`qc-${id}`);if(c){c.classList.add('done');c.classList.remove('warn');}updateProg();}
+function updateProg(){const n=Object.keys(responses).length;document.getElementById('prog-count').textContent=`${n} / 50`;document.getElementById('prog-fill').style.width=`${(n/50)*100}%`;}
+
+function showQPage(p){
+  curPage=p;document.querySelectorAll('.q-page').forEach(d=>d.classList.remove('active'));
+  const t=document.getElementById(`qp-${p}`);if(t)t.classList.add('active');
+  document.getElementById('btn-back').style.visibility=p===0?'hidden':'visible';
+  const last=p===PAGES-1;document.getElementById('btn-next').innerHTML=last?(T[lang]['btn-submit']||'View Results →'):(T[lang]['btn-next']||'Next →');
+  document.getElementById('page-num').textContent=`${p+1} / ${PAGES}`;window.scrollTo(0,0);
+}
+
+function qNext(){
+  const s=curPage*PER_PAGE,end=Math.min(s+PER_PAGE,Q_DATA.length);let ok=true,first=null;
+  for(let i=s;i<end;i++){if(!responses[Q_DATA[i].id]){ok=false;if(!first)first=Q_DATA[i].id;const c=document.getElementById(`qc-${Q_DATA[i].id}`);if(c){c.classList.add('warn');setTimeout(()=>c.classList.remove('warn'),2000);}}}
+  if(!ok){document.getElementById(`qc-${first}`).scrollIntoView({behavior:'smooth',block:'center'});return;}
+  if(curPage<PAGES-1)showQPage(curPage+1);else showResults();
+}
+function qPrev(){if(curPage>0)showQPage(curPage-1);}
+
+// ========== SCORING ==========
+function calcScores(){
+  const r=responses;
+  let E=20+(r[1]||3)-(r[6]||3)+(r[11]||3)-(r[16]||3)+(r[21]||3)-(r[26]||3)+(r[31]||3)-(r[36]||3)+(r[41]||3)-(r[46]||3);
+  let A=14-(r[2]||3)+(r[7]||3)-(r[12]||3)+(r[17]||3)-(r[22]||3)+(r[27]||3)-(r[32]||3)+(r[37]||3)+(r[42]||3)+(r[47]||3);
+  let C=14+(r[3]||3)-(r[8]||3)+(r[13]||3)-(r[18]||3)+(r[23]||3)-(r[28]||3)+(r[33]||3)-(r[38]||3)+(r[43]||3)+(r[48]||3);
+  let N=38-(r[4]||3)+(r[9]||3)-(r[14]||3)+(r[19]||3)-(r[24]||3)-(r[29]||3)-(r[34]||3)-(r[39]||3)-(r[44]||3)-(r[49]||3);
+  let O=8+(r[5]||3)-(r[10]||3)+(r[15]||3)-(r[20]||3)+(r[25]||3)-(r[30]||3)+(r[35]||3)+(r[40]||3)+(r[45]||3)+(r[50]||3);
+  const cl=v=>Math.max(0,Math.min(40,v));return{E:cl(E),A:cl(A),C:cl(C),N:cl(N),O:cl(O)};
+}
+
+// ========== RESULTS ==========
+function showResults(){
+  const scores=calcScores();goTo('scr-results');
+  const tN=T[lang].traits,tD=T[lang].traitDesc,colors={E:'var(--trait-e)',A:'var(--trait-a)',C:'var(--trait-c)',N:'var(--trait-n)',O:'var(--trait-o)'};
+  const sorted=Object.entries(scores).sort((a,b)=>b[1]-a[1]),dom=sorted[0];
+  document.getElementById('dom-box').innerHTML=`<div class="d-label">${T[lang]['dom-label']}</div><div class="d-name">${tN[dom[0]]}</div><div class="d-score">${dom[1]} <small>/ 40</small></div>`;
+  const list=document.getElementById('trait-list');list.innerHTML='';
+  Object.entries(scores).forEach(([t,s])=>{const pct=(s/40)*100,level=s>=28?'high':'low';
+    list.innerHTML+=`<div class="t-row"><div class="t-row-head"><span class="t-name">${tN[t]}</span><span class="t-score" style="color:${colors[t]}">${s}/40</span></div><div class="t-bar"><div class="t-bar-fill" style="width:${pct}%;background:${colors[t]}"></div></div><div class="t-desc">${tD[t][level]}</div></div>`;});
+  renderChart(scores);
+}
+
+function renderChart(scores){
+  const ctx=document.getElementById('radar-chart').getContext('2d');const tN=T[lang].traits;
+  if(window._chart)window._chart.destroy();
+  const gridColor=theme==='dark'?'oklch(28% 0.012 290)':'oklch(90% 0.008 290)';
+  window._chart=new Chart(ctx,{type:'radar',data:{labels:[tN.E,tN.A,tN.C,tN.N,tN.O],datasets:[{label:lang==='en'?'Your Scores':'உங்கள் மதிப்பெண்கள்',data:[scores.E,scores.A,scores.C,scores.N,scores.O],backgroundColor:'oklch(52% 0.18 290 / 0.12)',borderColor:'oklch(52% 0.18 290)',borderWidth:2.5,pointBackgroundColor:'oklch(52% 0.18 290)',pointRadius:5},{label:lang==='en'?'Population Average':'மக்கள் சராசரி',data:[24.4,30.7,27,23.8,32.4],backgroundColor:'oklch(65% 0.2 30 / 0.06)',borderColor:'oklch(65% 0.2 30 / 0.4)',borderWidth:1.5,borderDash:[4,4],pointRadius:3}]},options:{responsive:true,maintainAspectRatio:true,scales:{r:{min:0,max:40,ticks:{stepSize:10,backdropColor:'transparent'},grid:{color:gridColor},angleLines:{color:gridColor}}},plugins:{legend:{position:'bottom',labels:{padding:16}}}}});
+}
+
+// ========== PDF ==========
+function downloadPDF(){
+  const scores=calcScores(),tN=T[lang].traits,tD=T[lang].traitDesc,sorted=Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+  const dateStr=new Date().toLocaleDateString(lang==='ta'?'ta-IN':'en-US',{year:'numeric',month:'long',day:'numeric'});
+  const title=lang==='en'?'PsycheLens Personality Report':'PsycheLens ஆளுமை அறிக்கை';
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet"><style>body{font-family:${lang==='ta'?"'Noto Sans Tamil',":""}  'Space Grotesk',system-ui,sans-serif;padding:40px;max-width:700px;margin:0 auto;color:#1a1a2e;line-height:1.7}h1{font-size:26px;margin-bottom:4px}h2{font-size:18px;margin-top:28px;border-bottom:2px solid #eee;padding-bottom:6px}.sub{color:#666;font-size:13px;margin-bottom:20px}.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0}.row .name{font-weight:600}.row .val{font-weight:700;color:#4a2c8a}.bar{height:7px;background:#f0f0f0;border-radius:4px;margin-top:3px}.bar-f{height:100%;background:#4a2c8a;border-radius:4px}.qi{padding:5px 0;font-size:12px;border-bottom:1px solid #f8f8f8}.qi span{color:#888}.disc{margin-top:28px;padding:14px;background:#f9f7fd;border-radius:8px;font-size:11px;color:#666}.interp{background:#f6f4fb;padding:14px;border-radius:8px;margin-top:10px;font-size:13px}@media print{body{padding:20px}}</style></head><body><h1>${title}</h1><p class="sub">${dateStr}</p><h2>${lang==='en'?'Score Summary':'மதிப்பெண் சுருக்கம்'}</h2>${Object.entries(scores).map(([t,s])=>`<div class="row"><span class="name">${tN[t]}</span><span class="val">${s}/40 (${Math.round(s/40*100)}%)</span></div><div class="bar"><div class="bar-f" style="width:${(s/40)*100}%"></div></div>`).join('')}<h2>${lang==='en'?'Interpretation':'விளக்கம்'}</h2><div class="interp"><p><strong>${lang==='en'?'Dominant':'முதன்மை'}:</strong> ${tN[sorted[0][0]]} (${sorted[0][1]}/40)</p>${Object.entries(scores).map(([t,s])=>`<p><strong>${tN[t]}:</strong> ${tD[t][s>=28?'high':'low']}</p>`).join('')}</div><h2>${lang==='en'?'Your Responses':'உங்கள் பதில்கள்'}</h2>${Q_DATA.map((q,i)=>`<div class="qi"><strong>${i+1}.</strong> ${q[lang]} <span>— ${responses[q.id]||'-'}</span></div>`).join('')}<div class="disc"><strong>${lang==='en'?'Disclaimer':'மறுப்பு'}:</strong> ${lang==='en'?'This assessment uses the IPIP 50-item scale for educational purposes only.':'இந்த மதிப்பீடு IPIP 50-உருப்படி அளவை கல்வி நோக்கங்களுக்காக மட்டுமே பயன்படுத்துகிறது.'}</div></body></html>`);
+  w.document.close();setTimeout(()=>w.print(),600);
+}
+
+function retake(){responses={};curPage=0;goTo('scr-home');}
+updateProg();applyLang();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</body>
+</html>
